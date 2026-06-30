@@ -97,7 +97,7 @@
   <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,11,14,.96) 0%,rgba(10,11,14,.7) 36%,rgba(10,11,14,0) 60%)"></div>
   <div style="position:absolute;top:50px;left:64px;display:flex;align-items:center;gap:16px">
     <sc-if value="{{ hasLogo }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center">{{ coverLogo }}</div></sc-if>
-    <sc-if value="{{ noLogo }}" hint-placeholder-val="{{ true }}"><div style="border:1px dashed rgba(255,255,255,.35);border-radius:5px;padding:11px 20px;font-size:12px;color:#9aa0a8;font-family:monospace">고객사 CI</div></sc-if>
+    <sc-if value="{{ noLogo }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:5px"><div style="font-size:10px;letter-spacing:.22em;color:#5b8cf0;font-weight:700">FOR</div><div style="font-size:34px;font-weight:800;letter-spacing:-0.02em;color:#fff;line-height:1">{{ custTypo }}</div></div></sc-if>
   </div>
   <div style="position:absolute;left:64px;bottom:128px;max-width:720px">
     <div style="font-size:14px;letter-spacing:.04em;color:#5b8cf0;font-weight:700;margin-bottom:18px">{{ guiText }}</div>
@@ -593,6 +593,7 @@ class Component extends DCLogic {
       guiText: ph(s.customerName, '[고객사명]') + ' 귀중',
       hasLogo: !!s.customerLogo,
       noLogo: !s.customerLogo,
+      custTypo: ph(s.customerName, '고객사명'),
       customerLogo: s.customerLogo,
       vLogoScale: s.logoScale,
       logoScalePct: (s.logoScale||100) + '%',
