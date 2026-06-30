@@ -52,6 +52,13 @@
       <sc-if value="{{ noLogo }}" hint-placeholder-val="{{ true }}">
         <label class="cfg-btn" style="display:block;text-align:center;border-style:dashed"> 파일 선택…<input type="file" accept="image/png,image/svg+xml,image/*" onChange="{{ onLogo }}" style="display:none"></label>
       </sc-if>
+      <sc-if value="{{ hasLogo }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:10px;background:#15171c;border:1px solid #2a2e36;border-radius:6px;padding:9px 11px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:10.5px;color:#9aa0a8;font-weight:600">로고 크기 (비율)</span><span style="font-size:11px;color:#5b8cf0;font-weight:800">{{ logoScalePct }}</span></div>
+          <input type="range" min="50" max="200" step="5" value="{{ vLogoScale }}" onInput="{{ onLogoScale }}" style="width:100%;accent-color:#1E5BE6;cursor:pointer">
+          <div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:9px;color:#6b7280">50%</span><button class="cfg-btn" onClick="{{ resetLogoScale }}" style="padding:2px 8px;font-size:9.5px">100%</button><span style="font-size:9px;color:#6b7280">200%</span></div>
+        </div>
+      </sc-if>
       <div style="font-size:10px;color:#7b818b;line-height:1.5;margin-top:7px;background:#15171c;border:1px solid #23262d;border-radius:6px;padding:8px 10px">
         <b style="color:#9aa0a8">배경이 투명한 PNG</b>를 권장합니다. 업로드한 CI는 표지(S01)에 <b style="color:#9aa0a8">흰 박스 없이 투명하게</b> 삽입됩니다.<br>· 어두운 표지 배경에 잘 보이도록 <b style="color:#9aa0a8">흰색/밝은색 로고</b>가 가장 선명합니다.<br>· 위 미리보기의 체크무늬는 투명 영역을 뜻합니다.
       </div>
@@ -548,7 +555,7 @@ class Component extends DCLogic {
     open: true,
     customerName:'', proposalDate:'', docNo:'',
     repName:'', repTitle:'', repDept:'', repPhone:'', repEmail:'',
-    customerLogo:null
+    customerLogo:null, logoScale:100
   };
   componentDidMount(){
     try { const s = localStorage.getItem('bluetns_zyx_cfg'); if(s){ const d=JSON.parse(s); this.setState(d); } } catch(e){}
@@ -587,7 +594,11 @@ class Component extends DCLogic {
       hasLogo: !!s.customerLogo,
       noLogo: !s.customerLogo,
       customerLogo: s.customerLogo,
-      coverLogo: s.customerLogo ? React.createElement('img',{src:s.customerLogo, alt:'고객사 CI', style:{height:'38px',maxWidth:'180px',objectFit:'contain',display:'block'}}) : null,
+      vLogoScale: s.logoScale,
+      logoScalePct: (s.logoScale||100) + '%',
+      onLogoScale:(e)=>this.set('logoScale', parseInt(e.target.value,10)||100),
+      resetLogoScale: ()=> this.set('logoScale', 100),
+      coverLogo: s.customerLogo ? React.createElement('img',{src:s.customerLogo, alt:'고객사 CI', style:{height:Math.round(38*(s.logoScale||100)/100)+'px',maxWidth:Math.round(180*(s.logoScale||100)/100)+'px',objectFit:'contain',display:'block'}}) : null,
       panelLogo: s.customerLogo ? React.createElement('img',{src:s.customerLogo, alt:'고객사 CI', style:{height:'30px',maxWidth:'120px',objectFit:'contain',display:'block'}}) : null,
       onLogo:(e)=>{ const f = e.target.files && e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=> this.set('customerLogo', r.result); r.readAsDataURL(f); },
       clearLogo: ()=> this.set('customerLogo', null),
@@ -596,8 +607,8 @@ class Component extends DCLogic {
       repPhoneText: ph(s.repPhone, '[연락처]'),
       repEmailText: ph(s.repEmail, '[이메일]'),
       learnCount: learn,
-      onPrint: ()=> window.print(),
-      onReset: ()=> this.setState({customerName:'',proposalDate:'',docNo:'',repName:'',repTitle:'',repDept:'',repPhone:'',repEmail:'',customerLogo:null}, ()=>this.persist()),
+      onPrint: ()=>{ const nm=(s.customerName||'').trim(); const dt=(s.proposalDate||'').trim().replace(/[.\s]+/g,''); document.title = (nm ? ('ZYXCAD AX 제안서 - '+nm) : 'ZYXCAD AX 제안서 - 블루티엔에스') + (dt ? (' ('+dt+')') : ''); setTimeout(()=>window.print(), 50); },
+      onReset: ()=> this.setState({customerName:'',proposalDate:'',docNo:'',repName:'',repTitle:'',repDept:'',repPhone:'',repEmail:'',customerLogo:null,logoScale:100}, ()=>this.persist()),
       onSave: ()=>{ const {open, ...rest}=this.state; const blob=new Blob([JSON.stringify(rest,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=((rest.customerName||'preset').trim()||'preset')+'_ZYXCAD_AX_config.json'; document.body.appendChild(a); a.click(); a.remove(); },
       onLoad:(e)=>{ const f=e.target.files && e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); delete d.open; this.setState(d, ()=>this.persist()); }catch(err){ alert('불러오기 실패: 올바른 설정 JSON이 아닙니다.'); } }; r.readAsText(f); e.target.value=''; }
     };
