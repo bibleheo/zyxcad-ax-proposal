@@ -566,6 +566,10 @@ class Component extends DCLogic {
     const s = this.state;
     const ph = (v,p)=> (v && String(v).trim()) ? v : p;
     const learn = this.props.learningDrawings ?? '8만 장';
+    if (typeof document !== 'undefined') {
+      const nm = (s.customerName || '').trim();
+      document.title = nm ? ('ZYXCAD AX 제안서 - ' + nm) : 'ZYXCAD AX 제안서 · 블루티엔에스';
+    }
     return {
       open: s.open,
       toggle: ()=> this.setState(o=>({open:!o.open})),
